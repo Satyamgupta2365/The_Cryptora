@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Home, Wallet, Bot, Shield, Network, Brain, LogOut, User, Menu, ChevronLeft } from 'lucide-react';
 
+import Logo from '../assets/cryptora-logo.svg';
+
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -30,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, userEmail, o
         <div className="p-4 flex items-center justify-between">
           {!isMinimized && (
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Cryptora
+              <img src={Logo} alt="" />
             </span>
           )}
           <motion.button

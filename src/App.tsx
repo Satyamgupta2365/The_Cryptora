@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import HeroPage from './components/HeroPage';
 import Sidebar from './components/Sidebar';
 import HomePage from './components/HomePage';
-import WalletPage from './components/walletpage';
+// import WalletPage from './components/walletpage';
 import AIAssistant from './components/AIAssistant';
 import TokenSecurity from './components/TokenSecurity';
 import HederaNetwork from './components/HederaNetwork';
@@ -30,9 +30,9 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'Home':
-        return <HomePage />;
-      case 'Wallet':
-        return <WalletPage />;
+        return <HomePage onNavigate={() => {}} />;
+      // case 'Wallet':
+        // return <WalletPage />;
       case 'AI':
         return <AIAssistant />;
       case 'Security':
@@ -42,7 +42,7 @@ const App: React.FC = () => {
       case 'AI+':
         return <AIPlus />;
       default:
-        return <HomePage />;
+        return <HomePage onNavigate={() => {}}/>;
     }
   };
 
