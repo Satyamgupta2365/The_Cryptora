@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict
 import os
+import json
+from datetime import date
 from api_routes import router as api_router
 import asyncio
 from email_service import EmailService
@@ -11,7 +13,7 @@ from wallet_utils import get_balance_from_private_key, send_eth, web3
 from hedera_utils import send_hbar
 from dotenv import load_dotenv
 import requests
-import json
+import random
 
 app = FastAPI()
 email_service = EmailService()
@@ -44,13 +46,6 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-@app.post("/login")
-async def login(request: LoginRequest):
-    if request.email in CREDENTIALS and CREDENTIALS[request.email] == request.password:
-        return {"msg": "Login successful, MetaMask wallet connected (dummy)"}
-    else:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
 # In-memory storage for reminders
 reminders: Dict[str, list] = {
     "total_above_51": [],
@@ -64,8 +59,12 @@ reminders: Dict[str, list] = {
 previous_balances = {
     "total_usd_value": 51.50,
     "hydra": 50.00,
-    "coinbase": 2.50
+    "coinbase": 2.50,
+    "metamask": 0.00
 }
+
+# In-memory storage for expenses
+expenses = []
 
 class EmailReminder(BaseModel):
     email: str
@@ -73,26 +72,30 @@ class EmailReminder(BaseModel):
     threshold: Optional[float] = None
     currentBalances: Dict
 
+class AIInput(BaseModel):
+    input: str
+
 @app.post("/login")
 async def login(request: LoginRequest):
     if request.email in CREDENTIALS and CREDENTIALS[request.email] == request.password:
         return {"msg": "Login successful, MetaMask wallet connected (dummy)"}
     else:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
 @app.get("/ai/balances")
 async def get_ai_balances():
-    import random
     new_balances = {
         "total_usd_value": previous_balances["total_usd_value"] + random.uniform(-0.5, 0.5),
         "hydra": {"balance_hbar": (previous_balances["hydra"] / 0.05) + random.uniform(-10, 10), "usd_value": previous_balances["hydra"] + random.uniform(-0.5, 0.5)},
-        "coinbase": {"balance_usd": previous_balances["coinbase"] + random.uniform(-0.1, 0.1)}
+        "coinbase": {"balance_usd": previous_balances["coinbase"] + random.uniform(-0.1, 0.1)},
+        "metamask": {"balance_eth": previous_balances["metamask"] / 2500, "usd_value": previous_balances["metamask"] + random.uniform(-0.1, 0.1)}
     }
-    new_balances["total_usd_value"] = new_balances["hydra"]["usd_value"] + new_balances["coinbase"]["balance_usd"]
+    new_balances["total_usd_value"] = new_balances["hydra"]["usd_value"] + new_balances["coinbase"]["balance_usd"] + new_balances["metamask"]["usd_value"]
     
     previous_balances["total_usd_value"] = new_balances["total_usd_value"]
     previous_balances["hydra"] = new_balances["hydra"]["usd_value"]
     previous_balances["coinbase"] = new_balances["coinbase"]["balance_usd"]
+    previous_balances["metamask"] = new_balances["metamask"]["usd_value"]
     
     return new_balances
 
@@ -153,11 +156,85 @@ async def check_reminders():
 async def startup_event():
     asyncio.create_task(check_reminders())
 
-app.include_router(api_router)
+@app.get("/get-expenses")
+async def get_expenses():
+    return {"expenses": expenses}
 
-@app.get("/")
-def root():
-    return {"msg": "Web3 + Groq (LLaMA) + Hedera Backend Running"}
+@app.get("/get-insights")
+async def get_insights():
+    prompt = f"Analyze these expenses and provide insights: {json.dumps(expenses)}"
+    return {"insights": generate_llama_response(prompt)}
+
+@app.post("/process-ai-input")
+async def process_ai_input(input_data: AIInput):
+    text = input_data.input.lower()
+    current_balances = await get_ai_balances()
+
+    if 'transfer' in text and 'hydra' in text and 'metamask' in text:
+        try:
+            amount_match = re.search(r'\$([\d.]+)', text)
+            amount = float(amount_match.group(1)) if amount_match else 1.0
+            if amount > current_balances["hydra"]["usd_value"]:
+                return {"message": "Insufficient Hydra balance for transfer"}
+            
+            # Simulate Hedera transfer (replace with actual send_hbar call)
+            to_account_id = os.getenv("METAMASK_ACCOUNT_ID", "0.0.123456")  # Dummy MetaMask account ID
+            result = send_hbar(os.getenv("HEDERA_PRIVATE_KEY", ""), to_account_id, amount / 0.05)  # Convert USD to HBAR
+            
+            if "error" in result:
+                return {"message": f"Transfer failed: {result['error']}"}
+            
+            updated_balances = {**current_balances}
+            updated_balances["hydra"]["usd_value"] -= amount
+            updated_balances["hydra"]["balance_hbar"] -= amount / 0.05
+            updated_balances["metamask"]["usd_value"] += amount
+            updated_balances["metamask"]["balance_eth"] += amount / 2500  # Assume $2500/ETH
+            updated_balances["total_usd_value"] = (
+                updated_balances["hydra"]["usd_value"] +
+                updated_balances["coinbase"]["balance_usd"] +
+                updated_balances["metamask"]["usd_value"]
+            )
+            
+            previous_balances["hydra"] = updated_balances["hydra"]["usd_value"]
+            previous_balances["metamask"] = updated_balances["metamask"]["usd_value"]
+            previous_balances["total_usd_value"] = updated_balances["total_usd_value"]
+            
+            return {
+                "action": "transfer",
+                "details": f"${amount} transferred from Hydra to MetaMask",
+                "updatedBalances": updated_balances
+            }
+        except Exception as e:
+            return {"message": f"Transfer failed: {str(e)}"}
+    
+    elif 'expense' in text:
+        try:
+            amount_match = re.search(r'\$([\d.]+)', text)
+            amount = float(amount_match.group(1)) if amount_match else 10.0
+            category = re.search(r'(food|travel|other)', text) or 'other'
+            category = category.group(1) if category else 'Other'
+            description_match = re.search(r'for\s+([a-zA-Z\s]+)', text)
+            description = description_match.group(1).strip() if description_match else 'General expense'
+            
+            expense = {
+                "id": len(expenses) + 1,
+                "amount": amount,
+                "category": category.capitalize(),
+                "description": description,
+                "date": date.today().isoformat()
+            }
+            expenses.append(expense)
+            return {"action": "expense", "expense": expense}
+        except Exception as e:
+            return {"message": f"Failed to log expense: {str(e)}"}
+    
+    elif 'insights' in text:
+        prompt = f"Analyze these expenses and provide insights: {json.dumps(expenses)}"
+        insights = generate_llama_response(prompt)
+        return {"action": "insights", "insights": insights}
+    
+    else:
+        return {"message": "Command not recognized. Try 'transfer $1 from Hydra to MetaMask', 'log $10 food expense for lunch', or 'generate insights'."}
 
 @app.get("/wallet/balance")
 def get_wallet_balance_from_private_key(private_key: str = Query(..., description="Private key")):
@@ -226,31 +303,16 @@ def transfer_hbar(from_private_key: str, to_account_id: str, amount: float):
 
 @app.get("/hedera/tips")
 def get_hedera_tips():
-    prompt = "Give me practical tips for investing or using Hedera (HBAR) cryptocurrency.Output format rules: Headings should be in uppercase without any formatting.Points should be numbered using only numbers (1., 2., 3.).No bold, italics, or markdown formatting.Do not include decorative symbols or extra punctuation."
+    prompt = "Give me practical tips for investing or using Hedera (HBAR) cryptocurrency."
     return {"tips": generate_llama_response(prompt)}
 
 @app.get("/hedera/news")
 def get_hedera_news():
-    prompt = "Give me the latest Hedera (HBAR) related crypto news headlines with short summaries.Output format rules: Headings should be in uppercase without any formatting.Points should be numbered using only numbers (1., 2., 3.).No bold, italics, or markdown formatting.Do not include decorative symbols or extra punctuation."
+    prompt = "Give me the latest Hedera (HBAR) related crypto news headlines with short summaries."
     return {"news": generate_llama_response(prompt)}
 
 app.include_router(api_router)
 
-class FlightRequest(BaseModel):
-    from_city: str
-    to_city: str
-    date: str
-
 @app.get("/")
 async def root():
     return {"msg": "Web3 + Groq (LLaMA) + Hedera Backend Running"}
-
-@app.post("/book-flight")
-async def book_flight_endpoint(request: FlightRequest):
-    try:
-        # Run Selenium script in a separate thread to avoid blocking
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, book_flight, request.from_city, request.to_city, request.date)
-        return {"msg": "Flight booking process started"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error starting booking process: {str(e)}")

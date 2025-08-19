@@ -17,9 +17,9 @@ const tabs = [
   { name: 'Home', icon: Home, gradient: 'from-blue-600 to-indigo-600' },
   { name: 'Wallet', icon: Wallet, gradient: 'from-orange-500 to-yellow-500' },
   { name: 'AI', icon: Bot, gradient: 'from-purple-600 to-pink-600' },
+  { name: 'AI+', icon: Brain, gradient: 'from-red-500 to-orange-500' },
   { name: 'Security', icon: Shield, gradient: 'from-green-500 to-teal-500' },
   { name: 'Hedera', icon: Network, gradient: 'from-cyan-500 to-blue-500' },
-  { name: 'AI+', icon: Brain, gradient: 'from-red-500 to-orange-500' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, userEmail, onLogout, isMinimized, setIsMinimized }) => {
