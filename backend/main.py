@@ -98,7 +98,6 @@ async def login_google():
 
 @app.get("/auth/callback")
 async def auth_callback(request: Request):
-    # Handle OAuth callback from Supabase
     code = request.query_params.get("code")
     if not code:
         raise HTTPException(status_code=400, detail="Authorization code not found")
@@ -109,8 +108,7 @@ async def auth_callback(request: Request):
         response = supabase.auth.exchange_code_for_session(code)
         user = response.user
         session = response.session
-        # Redirect to wallet page after successful login
-        from fastapi.responses import RedirectResponse
+        print(f"Auth callback successful for user: {user.email}, redirecting to wallet")
         return RedirectResponse(url="http://localhost:5173/wallet")
     except Exception as e:
         print(f"Error exchanging code for session: {e}")

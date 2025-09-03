@@ -21,6 +21,7 @@ const AIPlus: React.FC = () => {
   const [message, setMessage] = useState('');
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [btcBalance, setBtcBalance] = useState(0.25); // Example BTC balance
 
   // List of available reminder conditions
   const conditions = [
@@ -30,6 +31,33 @@ const AIPlus: React.FC = () => {
     { label: 'Total Balance Drops Below $51', value: 'total_below_51' },
     { label: 'Custom', value: 'custom' },
   ];
+
+  // Goals state
+  const [goals, setGoals] = useState([
+    { id: 1, label: "Reach $1000 in BTC", target: 1000, coin: "BTC" },
+    { id: 2, label: "Reach $500 in ETH", target: 500, coin: "ETH" },
+    { id: 3, label: "Reach $200 in USDT", target: 200, coin: "USDT" },
+    { id: 4, label: "Reach $100 in HBAR", target: 100, coin: "HBAR" },
+    { id: 5, label: "Reach $50 in MATIC", target: 50, coin: "MATIC" },
+  ]);
+
+  // Dummy prices for demonstration
+  const prices = {
+    BTC: 65000,
+    ETH: 3500,
+    USDT: 1,
+    HBAR: 0.08,
+    MATIC: 0.7,
+  };
+
+  // Dummy balances for demonstration
+  const balances = {
+    BTC: btcBalance,
+    ETH: 0.15,
+    USDT: 120,
+    HBAR: 800,
+    MATIC: 40,
+  };
 
   // Function to set a reminder
   const handleSetReminder = async () => {
@@ -84,6 +112,45 @@ const AIPlus: React.FC = () => {
   const getConditionLabel = (value: string) => {
     const cond = conditions.find((c) => c.value === value);
     return cond ? cond.label : value;
+  };
+
+  const [newGoalLabel, setNewGoalLabel] = useState('');
+  const [newGoalTarget, setNewGoalTarget] = useState('');
+  const [newGoalCoin, setNewGoalCoin] = useState('BTC');
+
+  // Add goal handler
+  const handleAddGoal = () => {
+    if (!newGoalLabel || !newGoalTarget || !newGoalCoin) {
+      setMessage('Please fill all goal fields.');
+      return;
+    }
+    const newGoal = {
+      id: goals.length > 0 ? goals[goals.length - 1].id + 1 : 1,
+      label: newGoalLabel,
+      target: parseFloat(newGoalTarget),
+      coin: newGoalCoin,
+      // Assign a color for progress bar based on coin
+      color: newGoalCoin === 'BTC'
+        ? 'from-yellow-400 to-orange-500'
+        : newGoalCoin === 'ETH'
+        ? 'from-purple-400 to-blue-500'
+        : newGoalCoin === 'USDT'
+        ? 'from-green-400 to-green-600'
+        : newGoalCoin === 'HBAR'
+        ? 'from-indigo-400 to-purple-600'
+        : 'from-pink-400 to-red-500', // MATIC or others
+    };
+    setGoals([...goals, newGoal]);
+    setNewGoalLabel('');
+    setNewGoalTarget('');
+    setNewGoalCoin('BTC');
+    setMessage('Goal added!');
+  };
+
+  // Delete goal handler
+  const handleDeleteGoal = (id: number) => {
+    setGoals(goals.filter(goal => goal.id !== id));
+    setMessage('Goal deleted!');
   };
 
   return (
@@ -202,6 +269,88 @@ const AIPlus: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
+      </motion.div>
+
+      {/* Simple Goals Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-white rounded-2xl p-6 border border-gray-100 shadow-md mb-8"
+      >
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Simple Goals</h2>
+        <p className="text-gray-600 text-sm mb-4">
+          Track your progress towards your crypto goals.
+        </p>
+        {/* Add Goal Form */}
+        <div className="flex flex-col md:flex-row gap-2 mb-6">
+          <input
+            type="text"
+            value={newGoalLabel}
+            onChange={e => setNewGoalLabel(e.target.value)}
+            placeholder="Goal label (e.g., Reach $1000 in BTC)"
+            className="p-2 border border-gray-300 rounded-lg flex-1 focus:ring-2 focus:ring-blue-300"
+          />
+          <input
+            type="number"
+            value={newGoalTarget}
+            onChange={e => setNewGoalTarget(e.target.value)}
+            placeholder="Target amount ($)"
+            className="p-2 border border-gray-300 rounded-lg w-32 focus:ring-2 focus:ring-blue-300"
+          />
+          <select
+            value={newGoalCoin}
+            onChange={e => setNewGoalCoin(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg w-32 focus:ring-2 focus:ring-blue-300"
+          >
+            <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
+            <option value="USDT">USDT</option>
+            <option value="HBAR">HBAR</option>
+            <option value="MATIC">MATIC</option>
+          </select>
+          <button
+            onClick={handleAddGoal}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-600 transition flex items-center"
+          >
+            Add Goal
+          </button>
+        </div>
+        <div className="space-y-4">
+          {goals.map(goal => {
+            const currentValue = (balances[goal.coin] || 0) * (prices[goal.coin] || 0);
+            const percent = Math.min(100, (currentValue / goal.target) * 100);
+            return (
+              <motion.div
+                key={goal.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4 }}
+                className="mb-2"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-medium text-gray-800">{goal.label}</span>
+                  <span className="text-sm text-gray-600">
+                    ${currentValue.toFixed(2)} / ${goal.target}
+                  </span>
+                  <button
+                    onClick={() => handleDeleteGoal(goal.id)}
+                    className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200"
+                  >
+                    Delete
+                  </button>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className={`h-3 rounded-full transition-all duration-300 bg-gradient-to-r ${goal.color}`}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 mt-1">{percent.toFixed(1)}% complete</div>
+              </motion.div>
+            );
+          })}
+        </div>
       </motion.div>
 
       {/* Notifications */}
