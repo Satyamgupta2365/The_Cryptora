@@ -103,7 +103,7 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             whileTap={{ scale: 0.95 }}
           >
             <Wallet className="w-6 h-6 text-orange-600" />
-            <span>Connect Wallet</span>
+            <span>Wallet Address is Encrypted</span>
           </motion.button>
           <motion.button
             onClick={() => onNavigate('ai')}
