@@ -20,7 +20,7 @@ def generate_llama_response(prompt: str) -> str:
     """
     try:
         response = client.chat.completions.create(
-            model="llama3-8b-8192",  # Updated to correct Groq model name
+            model="llama-3.1-8b-instant",  # Updated to correct Groq model name
             messages=[
                 {"role": "user", "content": prompt}
             ],
