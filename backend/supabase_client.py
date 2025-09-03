@@ -23,7 +23,7 @@ def signup_user(email: str, password: str):
         print(f"Error signing up user: {e}")
         return None
 
-def get_google_oauth_url(redirect_url: str = "http://localhost:5173/auth/callback"):
+def get_google_oauth_url(redirect_url: str = "http://localhost:5173/wallet"):
     # Generate Google OAuth URL with redirect URL
     params = {
         "provider": "google",

@@ -1,10 +1,5 @@
 # 🚀 Cryptona - Multi-Chain AI-Powered Crypto Manager
 
-## 📞 Contact Information
-- **Primary Contact:** Satyam Gupta 
-- **Telegram Handle:** Kristo
-- **Team:** HackxBot
-
 ## 🎯 Project Title
 **Cryptona** - Advanced Multi-Chain Cryptocurrency Wallet Management with AI Integration
 
@@ -358,7 +353,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Web3.py** community for blockchain integration tools
 - **React** team for the amazing frontend framework
 - **FastAPI** for the high-performance backend framework
-
----
-
-

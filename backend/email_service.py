@@ -24,7 +24,7 @@ class EmailService:
         """
         response = self.groq_client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="lllama-3.1-8b-instant"
+            model="llama-3.3-70b-versatile"
         )
         return response.choices[0].message.content
 

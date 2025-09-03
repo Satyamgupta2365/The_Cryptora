@@ -745,7 +745,7 @@ class DetailedCryptoScraper:
         return output.strip()
 
 def generate_llama_response(prompt: str) -> str:
-    """Generate a response from LLaMA 3.1 hosted on Groq."""
+    """Generate a response from LLaMA 3.3 70B hosted on Groq."""
     try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",

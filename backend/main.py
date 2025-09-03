@@ -92,12 +92,12 @@ async def login(request: LoginRequest):
 @app.get("/login/google")
 async def login_google():
     # Returns the Google OAuth URL
-    redirect_url = "http://localhost:5173/auth/callback"  # Adjust based on your frontend
+    # Use /auth/callback with a query param for target page
+    redirect_url = "http://localhost:5173/wallet"
     return {"url": get_google_oauth_url(redirect_url)}
 
 @app.get("/auth/callback")
 async def auth_callback(request: Request):
-    # Handle OAuth callback from Supabase
     code = request.query_params.get("code")
     if not code:
         raise HTTPException(status_code=400, detail="Authorization code not found")
@@ -108,14 +108,8 @@ async def auth_callback(request: Request):
         response = supabase.auth.exchange_code_for_session(code)
         user = response.user
         session = response.session
-        # Optionally fetch more user data from Supabase (e.g., profile table)
-        # profile = supabase.table("profiles").select("*").eq("id", user.id).single().execute()
-        return {
-            "msg": "Google login successful",
-            "user": user,
-            "session": session
-            # ,"profile": profile.data if profile else None
-        }
+        print(f"Auth callback successful for user: {user.email}, redirecting to wallet")
+        return RedirectResponse(url="http://localhost:5173/wallet")
     except Exception as e:
         print(f"Error exchanging code for session: {e}")
         raise HTTPException(status_code=500, detail="Failed to complete Google login")
@@ -144,6 +138,15 @@ async def set_email_reminder(reminder: EmailReminder):
         "threshold": reminder.threshold,
         "last_balance": reminder.currentBalances
     })
+    # Send a simple email immediately after setting the reminder
+    try:
+        subject = "Cryptora Reminder Set"
+        body = f"Your reminder for '{reminder.condition}' has been set successfully.\nCurrent balance: ${reminder.currentBalances.get('total_usd_value', 0):.2f}"
+        if reminder.threshold is not None:
+            body += f"\nThreshold: ${reminder.threshold:.2f}"
+        email_service.send_email(reminder.email, subject, body)
+    except Exception as e:
+        print(f"Failed to send immediate reminder email to {reminder.email}: {str(e)}")
     return {"message": "Reminder set successfully"}
 
 async def check_reminders():
@@ -369,4 +372,8 @@ app.include_router(api_router)
 
 @app.get("/")
 async def root():
+    return {"msg": "Web3 + Groq (LLaMA) + Hedera Backend Running"}
+@app.get("/")
+async def root():
+    return {"msg": "Web3 + Groq (LLaMA) + Hedera Backend Running"}
     return {"msg": "Web3 + Groq (LLaMA) + Hedera Backend Running"}
