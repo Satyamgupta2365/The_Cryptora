@@ -26,6 +26,3 @@ export default tseslint.config(
     },
   }
 );
-
-
-#updated
