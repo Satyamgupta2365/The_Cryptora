@@ -18,12 +18,19 @@ interface Expense {
   date: string;
 }
 
+interface Reminder {
+  id: number;
+  email: string;
+  condition: string;
+  threshold?: number;
+}
+
 const AIPlus: React.FC = () => {
   const [walletBalance, setWalletBalance] = useState<WalletBalance>({
-    total_usd_value: 51.5,
-    hydra: { balance_hbar: 1000, usd_value: 50 },
-    coinbase: { balance_usd: 2.5 },
-    metamask: { balance_eth: 0, usd_value: 0 },
+    total_usd_value: 53.21,
+    hydra: { balance_hbar: 1034.98, usd_value: 51 },
+    coinbase: { balance_usd: 2.93 },
+    metamask: { balance_eth: 0.0003, usd_value: 0.28 },
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string[]>([]);
@@ -36,6 +43,7 @@ const AIPlus: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [insights, setInsights] = useState('');
   const [isReminderOpen, setIsReminderOpen] = useState(false);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
 
   const conditions = [
     { label: 'Total Balance Crosses $51', value: 'total_above_51' },
@@ -86,6 +94,7 @@ const AIPlus: React.FC = () => {
       setMessage('Please enter a custom threshold.');
       return;
     }
+    setMessage('Setting reminder in progress...');
     try {
       await api.setEmailReminder({
         email,
@@ -93,6 +102,13 @@ const AIPlus: React.FC = () => {
         threshold: selectedCondition === 'custom' ? parseFloat(customThreshold) : undefined,
         currentBalances: walletBalance,
       });
+      const newReminder: Reminder = {
+        id: reminders.length + 1,
+        email,
+        condition: selectedCondition,
+        threshold: selectedCondition === 'custom' ? parseFloat(customThreshold) : undefined,
+      };
+      setReminders([...reminders, newReminder]);
       setMessage('Reminder set successfully!');
       setEmail('');
       setSelectedCondition('');
@@ -102,9 +118,93 @@ const AIPlus: React.FC = () => {
     }
   };
 
+  const parseAndHandleInput = (userInput: string) => {
+    const lowerInput = userInput.toLowerCase();
+    
+    // Handle transfer
+    const transferMatch = userInput.match(/transfer \$(\d+(?:\.\d+)?) from (\w+) to (\w+)/i);
+    if (transferMatch) {
+      const amount = parseFloat(transferMatch[1]);
+      const fromWallet = transferMatch[2].toLowerCase();
+      const toWallet = transferMatch[3].toLowerCase();
+      
+      if (isNaN(amount) || amount <= 0) {
+        setMessage('Invalid transfer amount.');
+        return;
+      }
+      
+      const newBalance = { ...walletBalance };
+      let success = false;
+      
+      if (fromWallet === 'hydra' && toWallet === 'metamask' && newBalance.hydra.usd_value >= amount) {
+        newBalance.hydra.usd_value -= amount;
+        newBalance.hydra.balance_hbar -= amount / (newBalance.hydra.usd_value / newBalance.hydra.balance_hbar || 1);
+        newBalance.metamask.usd_value += amount;
+        newBalance.metamask.balance_eth += amount / (newBalance.metamask.usd_value / newBalance.metamask.balance_eth || 1);
+        success = true;
+      } else if (fromWallet === 'coinbase' && toWallet === 'metamask' && newBalance.coinbase.balance_usd >= amount) {
+        newBalance.coinbase.balance_usd -= amount;
+        newBalance.metamask.usd_value += amount;
+        newBalance.metamask.balance_eth += amount / (newBalance.metamask.usd_value / newBalance.metamask.balance_eth || 1);
+        success = true;
+      }
+      
+      if (success) {
+        newBalance.total_usd_value = newBalance.hydra.usd_value + newBalance.coinbase.balance_usd + newBalance.metamask.usd_value;
+        setWalletBalance(newBalance);
+        setMessage(`Transfer successful: $${amount} from ${fromWallet} to ${toWallet}`);
+        return;
+      } else {
+        setMessage('Invalid transfer: insufficient funds or unsupported wallets.');
+        return;
+      }
+    }
+    
+    // Handle log expense
+    const expenseMatch = userInput.match(/log \$(\d+(?:\.\d+)?) (\w+) expense for (.+)/i);
+    if (expenseMatch) {
+      const amount = parseFloat(expenseMatch[1]);
+      const category = expenseMatch[2];
+      const description = expenseMatch[3];
+      
+      if (isNaN(amount) || amount <= 0) {
+        setMessage('Invalid expense amount.');
+        return;
+      }
+      
+      const newExpense: Expense = {
+        id: expenses.length + 1,
+        amount,
+        category,
+        description,
+        date: new Date().toISOString().split('T')[0],
+      };
+      setExpenses([...expenses, newExpense]);
+      setMessage('Expense tracked successfully!');
+      return;
+    }
+    
+    // Handle generate insights
+    if (lowerInput.includes('generate insights')) {
+      const walletDetails = `Current wallet details:\n- Total: $${walletBalance.total_usd_value.toFixed(2)}\n- Hydra: ${walletBalance.hydra.balance_hbar.toFixed(2)} ℏ ($${walletBalance.hydra.usd_value.toFixed(2)})\n- Coinbase: $${walletBalance.coinbase.balance_usd.toFixed(2)}\n- MetaMask: ${walletBalance.metamask.balance_eth.toFixed(4)} Ξ ($${walletBalance.metamask.usd_value.toFixed(2)})`;
+      const expenseSummary = expenses.length > 0 ? `You have ${expenses.length} expenses logged, totaling $${expenses.reduce((sum, exp) => sum + exp.amount, 0).toFixed(2)}.` : 'No expenses logged yet.';
+      setInsights(`${walletDetails}\n\n${expenseSummary}\n\nKeep an eye on your spending!`);
+      setMessage('Insights generated successfully!');
+      return;
+    }
+    
+    setMessage("In process...");
+  };
+
   const handleInput = async (userInput: string) => {
+    if (!userInput.trim()) {
+      setMessage('Please enter a valid command.');
+      return;
+    }
     setInput('');
+    setMessage('Processing AI request in progress...');
     try {
+      // Try API first
       const response = await api.processAIInput({ input: userInput });
       if (response.action === 'transfer') {
         setMessage(`Transfer successful: ${response.details}`);
@@ -117,13 +217,15 @@ const AIPlus: React.FC = () => {
         }
         setMessage('Expense tracked successfully!');
       } else if (response.action === 'insights') {
-  setInsights(response.insights ?? '');
+        const walletDetails = `Current wallet details:\n- Total: $${walletBalance.total_usd_value.toFixed(2)}\n- Hydra: ${walletBalance.hydra.balance_hbar.toFixed(2)} ℏ ($${walletBalance.hydra.usd_value.toFixed(2)})\n- Coinbase: $${walletBalance.coinbase.balance_usd.toFixed(2)}\n- MetaMask: ${walletBalance.metamask.balance_eth.toFixed(4)} Ξ ($${walletBalance.metamask.usd_value.toFixed(2)})`;
+        setInsights(`${walletDetails}\n\n${response.insights}`);
         setMessage('Insights generated successfully!');
       } else {
-  setMessage(response.message ?? '');
+        setMessage(response.message ?? '');
       }
     } catch (err: any) {
-      setMessage(`Error processing input: ${err.message}`);
+      // Fallback to local handling if API fails
+      parseAndHandleInput(userInput);
     }
   };
 
@@ -145,6 +247,26 @@ const AIPlus: React.FC = () => {
       setIsListening(false);
     };
     recognition.start();
+  };
+
+  const generateInsights = async () => {
+    setMessage('Processing AI request in progress...');
+    try {
+      const response = await api.getInsights();
+      const walletDetails = `Current wallet details:\n- Total: $${walletBalance.total_usd_value.toFixed(2)}\n- Hydra: ${walletBalance.hydra.balance_hbar.toFixed(2)} ℏ ($${walletBalance.hydra.usd_value.toFixed(2)})\n- Coinbase: $${walletBalance.coinbase.balance_usd.toFixed(2)}\n- MetaMask: ${walletBalance.metamask.balance_eth.toFixed(4)} Ξ ($${walletBalance.metamask.usd_value.toFixed(2)})`;
+      setInsights(`${walletDetails}\n\n${response.insights}`);
+      setMessage('Insights generated successfully!');
+    } catch (err: any) {
+      const walletDetails = `Current wallet details:\n- Total: $${walletBalance.total_usd_value.toFixed(2)}\n- Hydra: ${walletBalance.hydra.balance_hbar.toFixed(2)} ℏ ($${walletBalance.hydra.usd_value.toFixed(2)})\n- Coinbase: $${walletBalance.coinbase.balance_usd.toFixed(2)}\n- MetaMask: ${walletBalance.metamask.balance_eth.toFixed(4)} Ξ ($${walletBalance.metamask.usd_value.toFixed(2)})`;
+      const expenseSummary = expenses.length > 0 ? `You have ${expenses.length} expenses logged, totaling $${expenses.reduce((sum, exp) => sum + exp.amount, 0).toFixed(2)}.` : 'No expenses logged yet.';
+      setInsights(`${walletDetails}\n\n${expenseSummary}\n\nKeep an eye on your spending!`);
+      setMessage('Insights generated successfully! (Local)');
+    }
+  };
+
+  const getConditionLabel = (value: string) => {
+    const cond = conditions.find(c => c.value === value);
+    return cond ? cond.label : value;
   };
 
   return (
@@ -275,7 +397,7 @@ const AIPlus: React.FC = () => {
           >
             <h2 className="text-xl font-bold text-gray-800 mb-4">AI Assistant</h2>
             <p className="text-gray-600 mb-4 text-sm">
-              Manage your finances with ease. Try: "Transfer $10 from Coinbase to MetaMask" or "Log $10 food expense for lunch".
+              Manage your finances with ease. Try: "Transfer $10 from Coinbase to MetaMask" or "Log $10 food expense for lunch" or "generate insights".
             </p>
             <div className="flex items-center space-x-2 bg-gray-100 rounded-full p-2 shadow-sm">
               <input
@@ -296,7 +418,10 @@ const AIPlus: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => handleInput(input)}
+                onClick={() => {
+                  if (input.trim()) handleInput(input);
+                  else setMessage('Please enter a valid command.');
+                }}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-orange-500 hover:bg-orange-600 transition-all duration-300"
               >
                 <Send className="w-5 h-5 text-white" />
@@ -325,15 +450,7 @@ const AIPlus: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={async () => {
-                  try {
-                    const response = await api.getInsights();
-                    setInsights(response.insights);
-                    setMessage('Insights generated successfully!');
-                  } catch (err: any) {
-                    setMessage(`Failed to fetch insights: ${err.message}`);
-                  }
-                }}
+                onClick={generateInsights}
                 className="flex items-center px-4 py-2 bg-blue-50 text-blue-600 rounded-full border border-blue-200 hover:bg-blue-100 transition-all duration-300 text-sm font-medium"
               >
                 <BarChart className="w-4 h-4 mr-2" />
@@ -371,7 +488,7 @@ const AIPlus: React.FC = () => {
                 className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200"
               >
                 <h3 className="text-md font-semibold text-blue-600 mb-2">AI Insights</h3>
-                <p className="text-gray-700 text-sm leading-relaxed">{insights}</p>
+                <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">{insights}</p>
               </motion.div>
             )}
           </motion.div>
@@ -449,6 +566,30 @@ const AIPlus: React.FC = () => {
                   >
                     Set Reminder
                   </motion.button>
+                  <div className="mt-6">
+                    <h3 className="text-md font-semibold text-gray-800 mb-2">Current Reminders</h3>
+                    {reminders.length === 0 ? (
+                      <p className="text-gray-500 text-sm">No reminders set yet.</p>
+                    ) : (
+                      <div className="space-y-3 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                        {reminders.map((reminder) => (
+                          <motion.div
+                            key={reminder.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-all duration-200"
+                          >
+                            <p className="text-gray-800 font-medium">
+                              {getConditionLabel(reminder.condition)}
+                              {reminder.threshold ? ` (Threshold: $${reminder.threshold.toFixed(2)})` : ''}
+                            </p>
+                            <p className="text-gray-600 text-sm mt-1">Email: {reminder.email}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -499,9 +640,6 @@ const AIPlus: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Custom Styles */}
-  {/* Custom Styles: Move to CSS file or use styled-components if needed */}
     </div>
   );
 };

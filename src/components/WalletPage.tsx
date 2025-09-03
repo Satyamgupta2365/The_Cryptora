@@ -1,3 +1,4 @@
+// ...existing code...
 import React, { useState, useEffect } from 'react';
 import { Copy, ExternalLink, TrendingUp } from 'lucide-react';
 import { api } from '../services/api';
@@ -47,9 +48,6 @@ const WalletPage: React.FC = () => {
                     })),
                 ]);
 
-                console.log('Wallet Data:', walletData);
-                console.log('Hedera Data:', hederaData);
-
                 // Mock Coinbase balances
                 const coinbaseData = {
                     ethereum: { balance_eth: 0, network: 'Ethereum Mainnet' },
@@ -59,7 +57,6 @@ const WalletPage: React.FC = () => {
                 // Handle wallet balance response and combine with mock Coinbase data
                 if (walletData.error) {
                     setError((prev) => [...prev, walletData.error]);
-                    console.error('Wallet balance error:', walletData.error);
                 } else {
                     // Combine the balances
                     const combinedBalance: WalletBalance = {
@@ -74,9 +71,9 @@ const WalletPage: React.FC = () => {
                         },
                         arbitrum: walletData.arbitrum,
                         bsc: walletData.bsc,
-                        total_usd_value: (walletData.total_usd_value || 0) + 
-                            ((coinbaseData.ethereum.balance_eth * 2500) + 
-                             (coinbaseData.polygon.balance_matic * 0.5)),
+                        total_usd_value: (walletData.total_usd_value || 0) +
+                            ((coinbaseData.ethereum.balance_eth * 2500) +
+                                (coinbaseData.polygon.balance_matic * 0.5)),
                     };
                     setMultiChainWalletBalance(combinedBalance);
                     localStorage.setItem('multiChainWalletBalance', JSON.stringify(combinedBalance));
@@ -85,15 +82,13 @@ const WalletPage: React.FC = () => {
                 // Handle Hedera balance response
                 if (hederaData.error) {
                     setError((prev) => [...prev, hederaData.error]);
-                    console.error('Hedera balance error:', hederaData.error);
-                } else if (hederaData.balance !== undefined) {
+                } else if (typeof hederaData.balance !== 'undefined') {
                     setHederaBalance(hederaData);
                     localStorage.setItem('hederaBalance', JSON.stringify(hederaData));
                 }
 
             } catch (err: any) {
                 setError((prev) => [...prev, `Unexpected error: ${err.message}`]);
-                console.error('Unexpected error fetching balances:', err);
             } finally {
                 setLoading(false);
             }
@@ -118,7 +113,7 @@ const WalletPage: React.FC = () => {
             total += multiChainWalletBalance.total_usd_value || 0;
         }
         if (hederaBalance) {
-            total += (hederaBalance.balance * 0.00000001 * hbarPrice) || 0;
+            total += ((hederaBalance.balance || 0) * 0.00000001 * hbarPrice) || 0;
         }
         if (metaMaskBalance) {
             total += (metaMaskBalance.balance_eth * ethPrice) || 0;
@@ -357,3 +352,4 @@ const WalletPage: React.FC = () => {
 };
 
 export default WalletPage;
+// ...existing code...

@@ -14,6 +14,7 @@ from hedera_utils import send_hbar
 from dotenv import load_dotenv
 import requests
 import random
+import re
 
 app = FastAPI()
 email_service = EmailService()
@@ -160,10 +161,25 @@ async def startup_event():
 async def get_expenses():
     return {"expenses": expenses}
 
+def clean_insights_text(text: str) -> str:
+    """
+    Remove markdown code blocks and unnecessary formatting from LLM response.
+    """
+    import re
+    # Remove code blocks (```...```
+    text = re.sub(r"```[\s\S]*?```", "", text)
+    # Remove markdown headers and excess whitespace
+    text = re.sub(r"^#+\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\*\*.*?\*\*", "", text)
+    text = re.sub(r"\n{2,}", "\n", text)
+    return text.strip()
+
 @app.get("/get-insights")
 async def get_insights():
     prompt = f"Analyze these expenses and provide insights: {json.dumps(expenses)}"
-    return {"insights": generate_llama_response(prompt)}
+    raw = generate_llama_response(prompt)
+    insights = clean_insights_text(raw)
+    return {"insights": insights}
 
 @app.post("/process-ai-input")
 async def process_ai_input(input_data: AIInput):
@@ -230,7 +246,8 @@ async def process_ai_input(input_data: AIInput):
     
     elif 'insights' in text:
         prompt = f"Analyze these expenses and provide insights: {json.dumps(expenses)}"
-        insights = generate_llama_response(prompt)
+        raw = generate_llama_response(prompt)
+        insights = clean_insights_text(raw)
         return {"action": "insights", "insights": insights}
     
     else:
