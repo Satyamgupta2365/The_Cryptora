@@ -1,10 +1,5 @@
 # 🚀 Cryptona - Multi-Chain AI-Powered Crypto Manager
 
-## 📞 Contact Information
-- **Primary Contact:** Satyam Gupta 
-- **Telegram Handle:** Kristo
-- **Team:** HackxBot
-
 ## 🎯 Project Title
 **Cryptona** - Advanced Multi-Chain Cryptocurrency Wallet Management with AI Integration
 
