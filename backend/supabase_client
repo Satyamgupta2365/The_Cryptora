@@ -1,0 +1,26 @@
+import os
+from supabase import create_client, Client
+
+url = "https://web3-cryptora.supabase.co" 
+# url = os.environ.get("SUPABASE_URL")
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlY3FsZGJzZ29rbXpocWFqcmxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MTAwMDEsImV4cCI6MjA3MjQ4NjAwMX0.R8Wd6oiQQqOsIKDib-xrjF_47JNssKaVutvQ5XRtjtU"
+# key = os.environ.get("SUPABASE_ANON_KEY")
+
+
+supabase: Client = create_client(url, key)
+
+def login_user(email, password):
+    try:
+        user = supabase.auth.sign_in_with_password({"email": email, "password": password})
+        return user
+    except Exception as e:
+        print(f"Error logging in user: {e}")
+        return None
+
+def signup_user(email, password):
+    try:
+        user = supabase.auth.sign_up({"email": email, "password": password})
+        return user
+    except Exception as e:
+        print(f"Error signing up user: {e}")
+        return None

@@ -39,6 +39,9 @@ httpx==0.25.2  # Alternative HTTP client, useful for async requests
 pytest==7.4.3
 pytest-asyncio==0.21.1
 
+# Supabase
+supabase-2.18.1
+
 # Logging (standard library, but including for completeness)
 # No additional package needed for basic logging
 
