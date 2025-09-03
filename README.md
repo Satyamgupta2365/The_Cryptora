@@ -1,142 +1,364 @@
-### 🚀 Cryptona - Multi-Chain AI-Powered Crypto Manager
-## 📌 Project Summary
+# 🚀 Cryptona - Multi-Chain AI-Powered Crypto Manager
 
-Cryptona is an AI-integrated, multi-chain cryptocurrency wallet and portfolio manager that supports Ethereum, Polygon, BSC, Arbitrum, and Hedera. It enables users to connect and manage multiple wallets, analyze token security, and receive intelligent investment insights—all from one unified platform.
+## 📞 Contact Information
+- **Primary Contact:** Satyam Gupta 
+- **Telegram Handle:** Kristo
+- **Team:** HackxBot
 
-## 🧠 One-Liner Elevator Pitch
+## 🎯 Project Title
+**Cryptona** - Advanced Multi-Chain Cryptocurrency Wallet Management with AI Integration
 
-Cryptona is an AI-powered multi-chain crypto wallet manager that connects with Ethereum, Polygon, BSC, Arbitrum, and Hedera, offering intelligent token analysis, investment insights, and enhanced wallet security via an innovative Model Context Protocol (MCP).
+## 💡 One-Sentence Elevator Pitch
+Cryptona is an AI-powered multi-chain cryptocurrency portfolio and Wallet manager that connects to Ethereum, Polygon, BSC, Arbitrum, and Hedera networks, allowing users to manage multiple wallets, analyze tokens for security risks, and receive intelligent investment insights through a Model Context Protocol (MCP) interface.
 
-## 🛠 Features
+## 📋 Detailed Project Description
 
-🔗 Multi-Chain Support: Seamless interaction with Ethereum, Polygon, Binance Smart Chain, Arbitrum, and Hedera.
+### Overview
+Cryptona revolutionizes cryptocurrency portfolio management by providing a unified interface for managing assets across multiple blockchain networks. The project combines traditional wallet functionality with AI-powered analysis and security features, making it easier for users to track, manage, and secure their crypto investments.
 
-🤖 AI Integration: Utilizes Groq LLM for smart token analysis, investment insights, and risk detection.
+<img width="500" height="500" alt="Image" src="https://github.com/user-attachments/assets/31a19e1b-cea2-4275-9a52-81a5fc8f738d" />
 
-🧩 Model Context Protocol (MCP): Provides context-aware recommendations.
+### Watch demo 
+https://youtu.be/AF6KlyFQb4s
 
-🔐 Token Security Analyzer: Detects scams, honeypots, and rug-pull risks using smart contract data and AI heuristics.
+### Key Features
 
-🧾 Wallet Aggregator: Manage multiple wallets from different chains via a single interface.
+#### 🔗 Multi-Chain Wallet Support
+- **Ethereum Mainnet** - Native ETH and ERC-20 token support
+- **Polygon Network** - MATIC and Polygon-based tokens
+- **BSC (Binance Smart Chain)** - BNB and BEP-20 tokens
+- **Arbitrum Network** - Layer 2 scaling for Ethereum
+- **Hedera Hashgraph** - HBAR and Hedera ecosystem tokens
 
-☁️ Supabase Auth: Secure user authentication via email/password or Google OAuth.
+#### 🤖 AI-Powered Features
+- **Portfolio Analysis** - LLaMA 3.1 powered insights via Groq
+- **Token Security Analysis** - AI-driven scam detection
+- **Investment Recommendations** - Personalized advice based on portfolio
+- **Real-time News Integration** - Latest crypto news and Hedera updates
+- **Market Intelligence** - Price tracking and conversion tools
 
-📬 Email Alerts: Transaction and insight alerts via SMTP.
-## Flowchart
-![alt text](FC1.png)
+#### 🛡️ Security Features
+- **Token Security Analyzer** - Detect honeypots, rug pulls, and suspicious contracts
+- **Private Key Management** - Secure local storage and handling
+- **Transaction Validation** - Multi-layer verification before sending
+- **Risk Assessment** - AI-powered risk scoring for tokens and transactions
 
-![alt text](fc2.png)
+#### 🎯 Model Context Protocol (MCP) Integration
+- **Multi-Wallet AI Control** - Unique MCP implementation controlling 4+ wallets simultaneously
+- **25+ AI Tools** - Comprehensive toolkit for crypto management
+- **Natural Language Interface** - Interact with wallets using plain English
+- **Cross-Chain Operations** - Seamless management across different networks
 
-## 📁 Project Structure
-Cryptona/
-│
-├── backend/
-│   ├── main.py
-│   ├── supabase_client.py
-│   ├── signin_oauth.py
-│   ├── requirements.txt
-│
-├── .env
-├── README.md
+### Technology Stack
 
-## Live Demo / Frontend
+#### Backend
+- **FastAPI** - High-performance Python web framework
+- **Web3.py** - Ethereum and EVM chain interactions
+- **Groq API** - LLaMA 3.1 model for AI features
+- **Hedera SDK** - Hedera network integration
+- **SQLite/PostgreSQL** - Data persistence
+- **CORS Middleware** - Cross-origin resource sharing
 
-The frontend is assumed to run at: http://localhost:5173/
+#### Frontend
+- **React 18** - Modern UI framework
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** - Smooth animations
+- **Lucide React** - Beautiful icons
+- **Recharts** - Data visualization
 
-## ⚙️ Environment Configuration (.env)
+#### AI & Analytics
+- **Groq (LLaMA 3.1-8B)** - Natural language processing
+- **Model Context Protocol (MCP)** - AI-blockchain interface
+- **CoinGecko API** - Real-time price data
+- **Custom Security Algorithms** - Token risk assessment
 
-Create a .env file in the root directory and configure the following variables:
+## 🚀 Installation Steps
 
-# Ethereum / Blockchain
-COINBASE_WALLET_PRIVATE_KEY=0x77a206935dffea1bf19c9fdfe2e8cdd47e3f8bfd8d607c16df83239b9acb093c
-RPC_URL=https://cold-sparkling-sunset.ethereum-sepolia.quiknode.pro/4a8ab41a7b661f4427e234d8d18541a848ae3064/
+### Prerequisites
+- Node.js 18+ and npm/yarn
+- Python 3.8+
+- Git
 
-# AI Integration (Groq)
-GROQ_API_KEY=gsk_...
+### Backend Setup
 
-# Hedera Network
-HEDERA_ACCOUNT_ID=0.0.6494384
-HEDERA_PRIVATE_KEY=0xa4b59ac541bc5eada6cfb1a16afd569e65186ddd4cf6bee7f948528432029777
-HEDERA_BASE_URL=https://testnet.mirrornode.hedera.com/api/v1
-HEDERA_API_KEY=
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/your-username/cryptona.git
+   cd cryptona
+   ```
 
-# SMTP - Email Alerts
-SMTP_USER=doenattack@gmail.com
-SMTP_PASSWORD=Local@123
+2. **Create Python Virtual Environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-# Supabase Configuration
-SUPABASE_URL=https://dysaqwpotjmebytbfooe.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+3. **Install Python Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 🔧 Backend Setup
-1. Clone the repository
-git clone https://github.com/yourusername/cryptona.git
-cd cryptona/backend
+4. **Install Required Packages**
+   ```bash
+   pip install fastapi uvicorn python-dotenv groq web3 requests nacl hashlib
+   pip install mcp  # For MCP server functionality
+   ```
 
-2. Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+### Frontend Setup
 
-3. Install dependencies
-pip install -r requirements.txt
+1. **Navigate to Frontend Directory**
+   ```bash
+   cd frontend  # Adjust path as needed
+   ```
 
-4. Run the FastAPI backend
-uvicorn main:app --reload
+2. **Install Dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-## 🔑 Authentication - Supabase
+3. **Install Additional Packages**
+   ```bash
+   npm install framer-motion lucide-react recharts
+   ```
 
-Cryptona uses Supabase
- for authentication:
+## 🔧 Environment Variables
 
-Email/Password Login via login_user(email, password)
+Create a `.env` file in the root directory with the following variables:
 
-User Signup via signup_user(email, password)
+```env
+# Groq API Configuration
+GROQ_API_KEY=your_groq_api_key_here
 
-Google OAuth Login:
+# Hedera Network Configuration
+HEDERA_BASE_URL=https://mainnet-public.mirrornode.hedera.com/api/v1
+HEDERA_ACCOUNT_ID=0.0.your_account_id
+HEDERA_PRIVATE_KEY=your_hedera_private_key
+HEDERA_PUBLIC_KEY=your_hedera_public_key
+HEDERA_API_KEY=your_hedera_api_key_optional
 
-URL Generator: get_google_oauth_url(redirect_url)
+# Ethereum/EVM Networks (Optional - defaults provided)
+QUICKNODE_URL=https://your-quicknode-endpoint
+POLYGON_URL=https://polygon-rpc.com
+BSC_URL=https://bsc-dataseed1.binance.org
+ARBITRUM_URL=https://arb1.arbitrum.io/rpc
 
-Redirects to: http://localhost:5173/wallet
+# Security (for production)
+SECRET_KEY=your_secret_key_here
+DEBUG=False
+```
 
-Example OAuth URL:
+### Required API Keys
 
-http://localhost:5173/auth/callback
+1. **Groq API Key**
+   - Sign up at [console.groq.com](https://console.groq.com)
+   - Create a new API key
+   - Add to `GROQ_API_KEY`
 
+2. **Hedera Account**
+   - Create account on Hedera network
+   - Get account ID and private key
+   - Add to respective environment variables
 
-You can customize this in signin_oauth.py or supabase_client.py.
+3. **QuickNode (Optional)**
+   - Sign up for Ethereum node access
+   - Add endpoint to `QUICKNODE_URL`
 
-## 📦 Dependencies
+## 💻 Usage Examples
 
-All backend dependencies are defined in requirements.txt:
+### 1. Running the Application
 
-Category	Packages
-Web	fastapi, uvicorn[standard]
-Blockchain	web3, pynacl, cryptography
-AI/LLM	groq
-HTTP	requests, httpx
-Web Automation	selenium, webdriver-manager
-Env & Config	python-dotenv, pydantic
-Testing	pytest, pytest-asyncio
-Parsing	beautifulsoup4, bs4, soupsieve
-Async Support	asyncio-extras
+#### Start Backend Server
+```bash
+# Activate virtual environment
+source venv/bin/activate
 
+# Start FastAPI server
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
 
-## 🚨 Security Notes
+#### Start Frontend Development Server
+```bash
+# In frontend directory
+npm start
+# or
+yarn start
+```
 
-DO NOT commit your .env file or any private keys to a public repository.
+#### Start MCP Server
+```bash
+# Run the MCP server for AI integration
+python mcp.py
+```
 
-Consider using GitHub Secrets or environment managers like Docker Secrets or HashiCorp Vault for secure deployment.
+### 2. API Usage Examples
 
+#### Get Wallet Balance
+```bash
+curl "http://localhost:8000/wallet/balance?private_key=your_private_key"
+```
 
-This project is licensed under the MIT License. You are free to use, modify, and distribute it, provided proper attribution is given.
+#### Check Token Security
+```bash
+curl "http://localhost:8000/llm/checktoken?token_address=0x..."
+```
 
-## 🙏 Acknowledgements
+#### Get Hedera Balance
+```bash
+curl "http://localhost:8000/hedera/account/balance"
+```
 
-1. Supabase for Auth and Backend as a Service.
+#### AI Query Example
+```bash
+curl "http://localhost:8000/llm/query?q=What are the best DeFi strategies for 2024?"
+```
 
-2. Groq for blazing-fast LLM APIs.
+### 3. Frontend Features
 
-3. Web3 and Hedera SDKs for blockchain integration.
+#### Portfolio Overview
+- View all wallet balances across networks
+- Real-time USD value calculations
+- Token holdings breakdown
+- Copy addresses with one click
 
-4. FastAPI for an elegant and async-first Python web framework.
+#### Hedera Integration
+- Check HBAR balance
+- Send HBAR transactions
+- View transaction history
+- Get Hedera-specific tips and news
+
+#### Token Security Analyzer
+- Paste token contract address
+- Get AI-powered security analysis
+- View known risky tokens
+- Security best practices
+
+### 4. MCP Integration
+
+#### Connect AI Assistant
+```python
+# Example MCP tool usage
+await mcp_server.call_tool("add_wallet", {
+    "wallet_name": "main_wallet",
+    "private_key": "your_private_key",
+    "wallet_type": "ethereum"
+})
+
+await mcp_server.call_tool("get_portfolio_overview", {})
+
+await mcp_server.call_tool("analyze_wallet", {
+    "wallet_name": "main_wallet"
+})
+```
+
+## 🐛 Known Issues
+
+### Current Limitations
+
+1. **Hedera SDK Integration**
+   - Currently using placeholder implementation
+   - Real Hedera transactions need full SDK integration
+   - Transaction signing needs proper implementation
+
+2. **MetaMask Integration**
+   - Frontend shows MetaMask wallet but backend integration pending
+   - Direct MetaMask connection not implemented
+   - Cross-chain transfers are simulated
+
+3. **Price Data Accuracy**
+   - CoinGecko API has rate limits
+   - Some token prices may not be available
+   - USD calculations are estimates
+
+4. **Transaction History**
+   - Currently stored in localStorage (frontend only)
+   - No persistent backend storage implemented
+   - Limited to browser session
+
+5. **Error Handling**
+   - Network timeouts not fully handled
+   - Some API errors need better user feedback
+   - Recovery mechanisms need improvement
+
+### Security Considerations
+
+1. **Private Key Storage**
+   - Currently handled in memory only
+   - Production needs secure key management
+   - Consider hardware wallet integration
+
+2. **API Key Exposure**
+   - Ensure `.env` is in `.gitignore`
+   - Use environment-specific configurations
+   - Rotate keys regularly
+
+### Performance Issues
+
+1. **Multi-Chain Queries**
+   - Parallel API calls can be slow
+   - Consider implementing caching
+   - Rate limiting on external APIs
+
+2. **Frontend Loading**
+   - Initial portfolio load can be slow
+   - Need loading states for better UX
+   - Consider lazy loading components
+
+### Planned Improvements
+
+1. **Database Integration**
+   - Persistent transaction history
+   - User preferences storage
+   - Portfolio analytics over time
+
+2. **Enhanced Security**
+   - Multi-factor authentication
+   - Hardware wallet support
+   - Advanced scam detection algorithms
+
+3. **Mobile Responsiveness**
+   - Optimize for mobile devices
+   - Touch-friendly interactions
+   - Progressive Web App (PWA) features
+
+4. **Additional Networks**
+   - Solana integration
+   - Avalanche support
+   - Cosmos ecosystem
+
+## 📈 Future Roadmap
+
+- [ ] Full Hedera SDK integration
+- [ ] Real-time WebSocket price feeds
+- [ ] Advanced portfolio analytics
+- [ ] Mobile application
+- [ ] Hardware wallet support
+- [ ] DeFi protocol integrations
+- [ ] Social trading features
+- [ ] Advanced AI trading strategies
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- **Groq** for LLaMA 3.1 API access
+- **Hedera Hashgraph** for innovative consensus technology
+- **Web3.py** community for blockchain integration tools
+- **React** team for the amazing frontend framework
+- **FastAPI** for the high-performance backend framework
+
+---
+
 
