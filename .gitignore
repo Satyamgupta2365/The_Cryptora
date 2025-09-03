@@ -25,4 +25,4 @@ dist-ssr
 .env
 
 # Compile .py files
-__pycache__
+backend/__pycache__
