@@ -44,6 +44,7 @@ const AIPlus: React.FC = () => {
   const [insights, setInsights] = useState('');
   const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const conditions = [
     { label: 'Total Balance Crosses $51', value: 'total_above_51' },
@@ -193,7 +194,7 @@ const AIPlus: React.FC = () => {
       return;
     }
     
-    setMessage("In process...");
+    setMessage("In progress.");
   };
 
   const handleInput = async (userInput: string) => {
@@ -267,6 +268,22 @@ const AIPlus: React.FC = () => {
   const getConditionLabel = (value: string) => {
     const cond = conditions.find(c => c.value === value);
     return cond ? cond.label : value;
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      const res = await api.getGoogleLoginUrl();
+      if (res.url) {
+        window.location.href = res.url;
+      } else {
+        setMessage('Failed to get Google login URL.');
+      }
+    } catch (err) {
+      setMessage('Failed to get Google login URL.');
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (

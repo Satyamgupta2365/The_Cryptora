@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Wallet, Bot, Shield, Network, TrendingUp, Globe, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -45,6 +45,28 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
     { label: 'AI Powered', value: '100%', icon: Bot },
   ];
 
+  const [showLogin, setShowLogin] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setLoginError(null);
+    try {
+      const res = await fetch('http://localhost:8000/login/google');
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setLoginError('Failed to get Google login URL.');
+      }
+    } catch {
+      setLoginError('Failed to get Google login URL.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 font-sans overflow-hidden">
       {/* Background Wave Animation */}
@@ -77,9 +99,7 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </motion.p>
         <div className="flex flex-wrap justify-center gap-6">
           <motion.button
-            onClick={() => onNavigate('wallet')}
-            className="px-8 py-4 bg-gradient-to-r from-orange-50 to-amber-100 text-gray-900 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl hover:from-orange-100 hover:to-amber-200 transition-all duration-300 flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-orange-600"
-            whileHover={{ scale: 1.05 }}
+            onClick={() => setShowLogin(true)}
             whileTap={{ scale: 0.95 }}
           >
             <Wallet className="w-6 h-6 text-orange-600" />
@@ -94,6 +114,20 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             <Bot className="w-6 h-6 text-purple-600" />
             <span>Try AI Assistant</span>
           </motion.button>
+          {/* Google Login Button in Hero Section */}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={googleLoading}
+            className="px-8 py-3 bg-red-500 text-white rounded-xl font-semibold text-lg shadow hover:bg-red-600 transition-all duration-300 flex items-center"
+          >
+            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M21.35 11.1H12v2.8h5.35c-.23 1.2-1.4 3.5-5.35 3.5-3.22 0-5.85-2.68-5.85-6s2.63-6 5.85-6c1.84 0 3.07.78 3.78 1.44l2.58-2.52C17.09 3.58 14.8 2.5 12 2.5 6.48 2.5 2 7.02 2 12.5s4.48 10 10 10c5.52 0 9.5-4.5 9.5-10 0-.67-.07-1.32-.15-1.9z"/>
+            </svg>
+            {googleLoading ? "Redirecting..." : "Login with Google"}
+          </button>
+          {loginError && (
+            <div className="text-red-600 text-sm mt-2">{loginError}</div>
+          )}
         </div>
       </motion.div>
 
@@ -199,43 +233,96 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </motion.div>
 
-      <style jsx>{`
-        .wave-bg {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
-          overflow: hidden;
-        }
-        .wave-bg::before,
-        .wave-bg::after {
-          content: '';
-          position: absolute;
-          width: 200%;
-          height: 200%;
-          top: -50%;
-          left: -50%;
-          background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 10%, transparent 40%);
-          animation: wave 15s linear infinite;
-        }
-        .wave-bg::after {
-          animation-delay: -7.5s;
-          background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 10%, transparent 40%);
-        }
-        @keyframes wave {
-          0% {
-            transform: translate(-50%, -50%) scale(1);
+      {/* Login Section - Remove Google login button from here */}
+      <motion.div
+        className="relative z-10 pt-24 pb-16 text-center"
+        initial={{ opacity: 0, scale: 0.8, rotateX: 10 }}
+        animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
+      >
+        <motion.h1
+          className="text-5xl lg:text-7xl font-extrabold bg-gradient-to-r from-blue-700 via-purple-700 to-indigo-800 bg-clip-text text-transparent mb-8 tracking-tight"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          Welcome Back
+        </motion.h1>
+        <motion.p
+          className="text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          Log in to access your Web3 wallet and explore Cryptora's features.
+        </motion.p>
+        <div className="flex flex-col items-center gap-4 mb-8">
+          <input
+            type="email"
+            placeholder="Email"
+            defaultValue="issatyamgupta@gmail.com"
+            className="px-4 py-2 rounded-lg border border-gray-300 w-72"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="px-4 py-2 rounded-lg border border-gray-300 w-72"
+          />
+          <motion.button
+            onClick={() => onNavigate('wallet')}
+            className="px-8 py-4 bg-gradient-to-r from-orange-50 to-amber-100 text-gray-900 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl hover:from-orange-100 hover:to-amber-200 transition-all duration-300 flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-orange-600"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Wallet className="w-6 h-6 text-orange-600" />
+            <span>Connect Wallet & Login</span>
+          </motion.button>
+          {loginError && (
+            <div className="text-red-600 text-sm mt-2">{loginError}</div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Replace style jsx with plain style */}
+      <style>
+        {`
+          .wave-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+            overflow: hidden;
           }
-          50% {
-            transform: translate(-50%, -50%) scale(1.2);
+          .wave-bg::before,
+          .wave-bg::after {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 10%, transparent 40%);
+            animation: wave 15s linear infinite;
           }
-          100% {
-            transform: translate(-50%, -50%) scale(1);
+          .wave-bg::after {
+            animation-delay: -7.5s;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 10%, transparent 40%);
           }
-        }
-      `}</style>
+          @keyframes wave {
+            0% {
+              transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+              transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+              transform: translate(-50%, -50%) scale(1);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };

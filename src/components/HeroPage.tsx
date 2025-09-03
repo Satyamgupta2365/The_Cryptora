@@ -12,6 +12,8 @@ const HeroPage: React.FC<HeroPageProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showLogin, setShowLogin] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +35,26 @@ const HeroPage: React.FC<HeroPageProps> = ({ onLogin }) => {
       console.error(err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setLoginError(null);
+    try {
+      // Use your backend API to get the Google login URL
+      const res = await fetch('http://localhost:8000/login/google');
+      const data = await res.json();
+      if (data.url) {
+        // Make sure the URL is correct and accessible
+        window.location.href = data.url;
+      } else {
+        setLoginError('Failed to get Google login URL.');
+      }
+    } catch {
+      setLoginError('Failed to get Google login URL.');
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -137,6 +159,21 @@ const HeroPage: React.FC<HeroPageProps> = ({ onLogin }) => {
                 <span>{isLoading ? 'Connecting...' : 'Connect Wallet & Login'}</span>
               </motion.button>
 
+              {/* Google Login Button */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={googleLoading}
+                className="w-full py-4 bg-red-500 text-white rounded-xl font-semibold text-lg shadow hover:bg-red-600 transition-all duration-300 flex items-center justify-center mt-2"
+              >
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M21.35 11.1H12v2.8h5.35c-.23 1.2-1.4 3.5-5.35 3.5-3.22 0-5.85-2.68-5.85-6s2.63-6 5.85-6c1.84 0 3.07.78 3.78 1.44l2.58-2.52C17.09 3.58 14.8 2.5 12 2.5 6.48 2.5 2 7.02 2 12.5s4.48 10 10 10c5.52 0 9.5-4.5 9.5-10 0-.67-.07-1.32-.15-1.9z"/>
+                </svg>
+                {googleLoading ? "Redirecting..." : "Login with Google"}
+              </button>
+              {loginError && (
+                <div className="text-red-600 text-sm mt-2">{loginError}</div>
+              )}
               <AnimatePresence>
                 {error && (
                   <motion.p

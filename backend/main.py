@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict
@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 import requests
 import random
 import re
+from supabase_client import login_user, signup_user, get_google_oauth_url, supabase
 
 app = FastAPI()
 email_service = EmailService()
@@ -34,13 +35,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Hardcoded credentials
-CREDENTIALS = {
-    "user1@example.com": "pass123",
-    "user2@example.com": "pass456",
-    "user3@example.com": "pass789",
-}
 
 # Pydantic model for login request
 class LoginRequest(BaseModel):
@@ -78,10 +72,53 @@ class AIInput(BaseModel):
 
 @app.post("/login")
 async def login(request: LoginRequest):
-    if request.email in CREDENTIALS and CREDENTIALS[request.email] == request.password:
-        return {"msg": "Login successful, MetaMask wallet connected (dummy)"}
+    # Hardcoded user check
+    if request.email == "issatyamgupta@gmail.com" and request.password == "Reva@2365":
+        return {
+            "msg": "Login successful (hardcoded user)",
+            "user": {
+                "email": "issatyamgupta@gmail.com",
+                "name": "Satyam Gupta"
+            },
+            "session": "hardcoded-session-token"
+        }
+    # Supabase login fallback
+    user = login_user(request.email, request.password)
+    if user and user.get("session"):
+        return {"msg": "Login successful", "user": user["user"], "session": user["session"]}
     else:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid credentials or user not found")
+
+@app.get("/login/google")
+async def login_google():
+    # Returns the Google OAuth URL
+    redirect_url = "http://localhost:5173/auth/callback"  # Adjust based on your frontend
+    return {"url": get_google_oauth_url(redirect_url)}
+
+@app.get("/auth/callback")
+async def auth_callback(request: Request):
+    # Handle OAuth callback from Supabase
+    code = request.query_params.get("code")
+    if not code:
+        raise HTTPException(status_code=400, detail="Authorization code not found")
+
+    try:
+        if not supabase:
+            raise Exception("Supabase client not initialized")
+        response = supabase.auth.exchange_code_for_session(code)
+        user = response.user
+        session = response.session
+        # Optionally fetch more user data from Supabase (e.g., profile table)
+        # profile = supabase.table("profiles").select("*").eq("id", user.id).single().execute()
+        return {
+            "msg": "Google login successful",
+            "user": user,
+            "session": session
+            # ,"profile": profile.data if profile else None
+        }
+    except Exception as e:
+        print(f"Error exchanging code for session: {e}")
+        raise HTTPException(status_code=500, detail="Failed to complete Google login")
 
 @app.get("/ai/balances")
 async def get_ai_balances():

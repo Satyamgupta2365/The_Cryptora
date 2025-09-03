@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Newspaper, TrendingUp, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Newspaper, Sparkles } from 'lucide-react';
 import { api } from '../services/api';
 
 interface Message {
@@ -38,36 +38,13 @@ const ChatBubble: React.FC<{ message: Message }> = ({ message }) => {
             : 'bg-gray-100 text-gray-900'
         }`}
       >
-        {isUser ? (
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-        ) : (
-          <div className="text-sm whitespace-pre-wrap">
-            {/* Render formatted content for bot messages */}
-            {message.content.split('\n').map((line, index) => {
-              // Check for a list item
-              if (line.startsWith('* ')) {
-                return (
-                  <li key={index} className="list-inside list-disc">
-                    {line.substring(2).trim()}
-                  </li>
-                );
-              }
-              // Check for a heading
-              if (line.startsWith('**') && line.endsWith('**')) {
-                return (
-                  <strong key={index} className="block mt-2 mb-1">
-                    {line.slice(2, -2)}
-                  </strong>
-                );
-              }
-              return (
-                <p key={index} className="mb-1">
-                  {line}
-                </p>
-              );
-            })}
-          </div>
-        )}
+        <div className="text-sm whitespace-pre-wrap">
+          {message.content.split('\n').map((line, index) => (
+            <p key={index} className="mb-1">
+              {line}
+            </p>
+          ))}
+        </div>
         <p
           className={`text-xs mt-2 ${
             isUser ? 'text-blue-200' : 'text-gray-500'
@@ -84,7 +61,7 @@ const AIAssistant: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [currentAction, setCurrentAction] = useState<'news' | 'trends' | 'chat' | null>(null);
+  const [currentAction, setCurrentAction] = useState<'news' | 'chat' | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -95,38 +72,35 @@ const AIAssistant: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Initial bot message on component load
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([
         {
           id: '1',
           type: 'bot',
-          content: 'Hello! I\'m your Web3 AI assistant. I can help you with crypto analysis, market insights, wallet summaries, and answer any blockchain-related questions. How can I assist you today?',
+          content: 'Hello! I\'m your Web3 AI assistant. I can help you with crypto news analysis, wallet summaries, token safety checks, and answer blockchain-related questions. How can I assist you today?',
           timestamp: new Date()
         }
       ]);
     }
   }, []);
 
-  const handleSendMessage = async (messageContent?: string) => {
-    const messageToSend = messageContent || inputMessage;
-    if (!messageToSend.trim() || loading) return;
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: messageToSend,
+      content: inputMessage,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setLoading(true);
-    setCurrentAction('chat');
 
     try {
-      const response = await api.queryAI(messageToSend);
+      const response = await api.queryAI(inputMessage);
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -164,17 +138,10 @@ const AIAssistant: React.FC = () => {
     try {
       const response = await api.getCryptoNews();
       
-      const formattedNews = response.news.split('\n').map((line: string) => {
-        if (line.startsWith('*')) {
-          return `* ${line.substring(2)}`;
-        }
-        return line;
-      }).join('\n');
-      
       const newsMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: formattedNews || 'Unable to fetch crypto news at the moment.',
+        content: response.news || 'Unable to fetch crypto news at the moment.',
         timestamp: new Date()
       };
       
@@ -184,43 +151,6 @@ const AIAssistant: React.FC = () => {
         id: (Date.now() + 1).toString(),
         type: 'bot',
         content: 'Sorry, I couldn\'t fetch the latest crypto news. Please try again later.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGetMarketTrends = async () => {
-    setLoading(true);
-    setCurrentAction('trends');
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: 'What are the current market trends?',
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-
-    try {
-      // Simulate API call for market trends
-      const response = await api.queryAI('What are the current market trends?');
-      
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'bot',
-        content: response.response || 'Sorry, I couldn\'t process your request for market trends.',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, botMessage]);
-    } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'bot',
-        content: 'Sorry, I\'m having trouble connecting to the AI service. Please try again later.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -243,7 +173,6 @@ const AIAssistant: React.FC = () => {
         <p className="text-gray-600">Get intelligent insights about crypto and blockchain</p>
       </div>
 
-      {/* Quick Actions */}
       <div className="mb-6 flex space-x-4">
         <button
           onClick={handleGetCryptoNews}
@@ -258,18 +187,6 @@ const AIAssistant: React.FC = () => {
           <span>Latest Crypto News</span>
         </button>
         <button
-          onClick={handleGetMarketTrends}
-          disabled={loading}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-colors disabled:opacity-50 ${
-            currentAction === 'trends'
-              ? 'bg-green-600 text-white shadow-md'
-              : 'bg-green-100 text-green-700 hover:bg-green-200'
-          }`}
-        >
-          <TrendingUp className="w-4 h-4" />
-          <span>Market Trends</span>
-        </button>
-        <button
           onClick={() => setCurrentAction('chat')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-colors disabled:opacity-50 ${
             currentAction === 'chat'
@@ -282,7 +199,6 @@ const AIAssistant: React.FC = () => {
         </button>
       </div>
 
-      {/* Chat Messages */}
       <div className="flex-1 bg-white rounded-2xl shadow-xl border border-gray-100 flex flex-col">
         <div className="flex-1 p-6 overflow-y-auto space-y-4">
           {messages.map((message) => (
@@ -305,7 +221,6 @@ const AIAssistant: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         <div className="p-6 border-t border-gray-100">
           <div className="flex space-x-4">
             <textarea
@@ -318,7 +233,7 @@ const AIAssistant: React.FC = () => {
               disabled={loading}
             />
             <button
-              onClick={() => handleSendMessage()}
+              onClick={handleSendMessage}
               disabled={loading || !inputMessage.trim()}
               className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
             >
